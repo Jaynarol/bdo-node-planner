@@ -1,12 +1,16 @@
 'use client'
 import { useMemo, useState } from 'react'
 import { useApp } from '@/lib/app'
-import { minusItem, perDayOf, plusItem, useCandidates } from '@/lib/actions'
+import { addPick, clearItem, minusItem, perDayOf, plusItem, removePick, useCandidates } from '@/lib/actions'
 import NodeMap from './NodeMap'
 import SpotInfo from './SpotInfo'
+import { nodeTooltip } from './tooltip'
 import { fmt, ItemIcon, Modal, qty } from './ui'
 
-/** แผนที่ของไอเทมเดียว: ทุกจุดที่ผลิต (วงฟ้า = ยังไม่ลง · วงส้ม = ในแผน) + ＋/− · กดจุดดูข้อมูล (ดูอย่างเดียว) */
+/**
+ * แผนที่ของไอเทมเดียว: ทุกจุดที่ผลิต (วงฟ้า = ยังไม่ลง · วงส้ม = ในแผน)
+ * ＋/− ด้านบน = ระบบเลือกจุดให้ · กดการ์ดด้านข้าง = เลือก/ถอดจุดนั้นเอง · ⓘ หรือกดวงบนแผนที่ = ดูข้อมูล
+ */
 export default function ItemModal({ itemId, onClose }: { itemId: number; onClose: () => void }) {
   const app = useApp()
   const { game, spots, derived, state, produced, values } = app
@@ -15,6 +19,18 @@ export default function ItemModal({ itemId, onClose }: { itemId: number; onClose
   const [sel, setSel] = useState<number | null>(null)
   const planPzk = useMemo(() => new Set(state.picks.map((p) => p.pzk)), [state.picks])
 
+  // ลำดับการ์ดล็อกตั้งแต่เปิด (ในแผนก่อน แล้วรายได้/CP ส่วนเพิ่ม) — เลือก/ถอดแล้วการ์ดไม่กระโดด
+  const [rank] = useState(() => {
+    const rows = [...spots.values()]
+      .filter((s) => s.items.some((i) => i.id === itemId && !i.lucky))
+      .map((s) => {
+        const c = planPzk.has(s.pzk) ? null : cands.get(s.pzk)
+        return { pzk: s.pzk, inPlan: planPzk.has(s.pzk), score: (c?.spot ?? s).income / Math.max(c?.cost ?? s.cp, 0.5) }
+      })
+      .sort((a, b) => Number(b.inPlan) - Number(a.inPlan) || b.score - a.score)
+    return new Map(rows.map((r, i) => [r.pzk, i]))
+  })
+  const toggle = (pzk: number, inPlan: boolean) => (inPlan ? removePick(app, pzk) : addPick(app, { pzk }))
   const list = useMemo(
     () =>
       [...spots.values()]
@@ -25,7 +41,8 @@ export default function ItemModal({ itemId, onClose }: { itemId: number; onClose
           const shown = c?.spot ?? s
           return { s: shown, inPlan, cost: c?.cost, perDay: perDayOf(shown, itemId), income: shown.income }
         })
-        .sort((a, b) => Number(b.inPlan) - Number(a.inPlan) || b.income / Math.max(b.cost ?? b.s.cp, 0.5) - a.income / Math.max(a.cost ?? a.s.cp, 0.5)),
+        .sort((a, b) => (rank.get(a.s.pzk) ?? 1e9) - (rank.get(b.s.pzk) ?? 1e9)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [spots, itemId, planPzk, cands],
   )
   const parents = [...new Set(list.map((x) => x.s.parentId))]
@@ -66,6 +83,9 @@ export default function ItemModal({ itemId, onClose }: { itemId: number; onClose
             <button className="btn-primary px-3" onClick={() => plusItem(app, itemId)}>
               ＋
             </button>
+            <button className="btn ml-1" disabled={!plan} onClick={() => clearItem(app, itemId)} title="ถอดทุกจุดของไอเทมนี้">
+              ล้าง
+            </button>
           </span>
           <span className="text-xs font-normal text-neutral-400">
             CP {derived.cpUsed}/{state.settings.cpTotal} · {fmt(derived.incomePerDay)}/วัน
@@ -85,11 +105,14 @@ export default function ItemModal({ itemId, onClose }: { itemId: number; onClose
             selectedId={sel}
             fitIds={parents}
             onNodeClick={(id) => setSel(id)}
-            tooltip={(id) => {
-              const here = list.filter((x) => x.s.parentId === id)
-              const n = game.node.get(id)!
-              return `<b>${n.name}</b> · ${n.cp} CP${here.map((x) => `<br/>• ${x.s.name}: ${qty(x.perDay)}/วัน${x.inPlan ? ' ◀ ในแผน' : ''}`).join('')}`
-            }}
+            tooltip={(id) =>
+              nodeTooltip(
+                game,
+                id,
+                list.filter((x) => x.s.parentId === id).map((x) => ({ spot: x.s, inPlan: x.inPlan })),
+                itemId,
+              )
+            }
           />
         </div>
         <div className="w-96 shrink-0 overflow-auto border-l border-neutral-800 p-3 text-sm">
@@ -99,36 +122,52 @@ export default function ItemModal({ itemId, onClose }: { itemId: number; onClose
                 ← กลับไปรายการทุกจุด
               </button>
               {selList.map((x) => (
-                <SpotInfo key={x.s.pzk} spot={x.s} inPlan={x.inPlan} cost={x.cost} highlight={itemId} />
+                <SpotInfo key={x.s.pzk} spot={x.s} inPlan={x.inPlan} cost={x.cost} highlight={itemId} editable />
               ))}
             </div>
           ) : (
             <div className="space-y-1">
-              <div className="text-xs text-neutral-500">ทุกจุดที่ผลิต ({list.length}) · เรียงในแผนก่อน แล้วรายได้/CP ส่วนเพิ่ม · กดดูข้อมูล</div>
+              <div className="text-xs text-neutral-500">ทุกจุดที่ผลิต ({list.length}) · กดการ์ด = เลือก/ถอดจุดนั้นเอง · ⓘ = ดูข้อมูล</div>
               {list.map((x) => (
-                <button
+                <div
                   key={x.s.pzk}
-                  onClick={() => setSel(x.s.parentId)}
-                  className={`block w-full rounded border px-2 py-1.5 text-left hover:bg-neutral-800 ${x.inPlan ? 'border-amber-700 bg-amber-950/30' : 'border-neutral-800'}`}
+                  role="button"
+                  onClick={() => !x.s.dataMissing && toggle(x.s.pzk, x.inPlan)}
+                  className={`flex w-full cursor-pointer items-center gap-2 rounded border px-2 py-1.5 text-left hover:bg-neutral-800 ${x.inPlan ? 'border-amber-600 bg-amber-950/40' : 'border-neutral-800'} ${x.s.dataMissing ? 'cursor-not-allowed opacity-60' : ''}`}
+                  title={x.inPlan ? 'กดเพื่อถอดจุดนี้' : 'กดเพื่อเลือกจุดนี้'}
                 >
-                  <div className="flex justify-between gap-2">
-                    <span className="truncate">
-                      {x.inPlan && '⭐ '}
-                      {x.s.parentName} · {x.s.name}
-                    </span>
-                    <span className="shrink-0 text-neutral-300">{x.s.dataMissing ? '—' : `${qty(x.perDay)}/วัน`}</span>
+                  <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border text-xs ${x.inPlan ? 'border-amber-400 bg-amber-500 text-black' : 'border-neutral-500'}`}>
+                    {x.inPlan ? '✓' : ''}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex justify-between gap-2">
+                      <span className="truncate">
+                        {x.s.parentName} · {x.s.name}
+                      </span>
+                      <span className="shrink-0 text-neutral-300">{x.s.dataMissing ? '—' : `${qty(x.perDay)}/วัน`}</span>
+                    </div>
+                    <div className="text-[11px] text-neutral-400">
+                      {x.s.dataMissing ? (
+                        <span className="text-amber-300">⚠ ไม่มีข้อมูลดรอป</span>
+                      ) : (
+                        <>
+                          {fmt(x.income)}/วัน ·{' '}
+                          {x.inPlan ? 'อยู่ในแผน' : x.cost !== undefined ? `${x.cost} CP → ${fmt(x.income / Math.max(x.cost, 0.5))}/CP` : 'เชื่อมไม่ถึง'}
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-[11px] text-neutral-400">
-                    {x.s.dataMissing ? (
-                      <span className="text-amber-300">⚠ ไม่มีข้อมูลดรอป</span>
-                    ) : (
-                      <>
-                        {fmt(x.income)}/วัน ·{' '}
-                        {x.inPlan ? 'อยู่ในแผน' : x.cost !== undefined ? `${x.cost} CP → ${fmt(x.income / Math.max(x.cost, 0.5))}/CP` : 'เชื่อมไม่ถึง'}
-                      </>
-                    )}
-                  </div>
-                </button>
+                  <button
+                    className="shrink-0 rounded px-1.5 text-sky-300 hover:bg-neutral-700"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setSel(x.s.parentId)
+                    }}
+                    title="ดูข้อมูล/ตำแหน่งบนแผนที่"
+                  >
+                    ⓘ
+                  </button>
+                </div>
               ))}
             </div>
           )}

@@ -8,6 +8,7 @@ import SpotInfo from '@/components/SpotInfo'
 import SummaryBar from '@/components/SummaryBar'
 import SummaryModal from '@/components/SummaryModal'
 import { fmt } from '@/components/ui'
+import { nodeTooltip } from '@/components/tooltip'
 
 /** หน้าแผนที่: เครือข่ายทั้งแผน · กด node หลัก → แถบข้างเพิ่ม/ถอดจุดย่อย + ตั้งคนงาน · ✨ เติมอัตโนมัติ · 🔁 จัดเส้นใหม่ */
 export default function MapPage() {
@@ -96,15 +97,16 @@ export default function MapPage() {
             counts={counts}
             selectedId={sel}
             onNodeClick={setSel}
-            tooltip={(id) => {
-              const n = game.node.get(id)!
-              const here = (game.pzByParent.get(id) ?? []).map((pzk) => spots.get(pzk)).filter((s) => !!s)
-              const base = game.baseIds.has(id) ? (game.workerTownIds.has(id) ? ' (เมืองฟรี)' : ' (ฐานฟรี · ไม่มีคนงาน — ต้องส่งจากเมืองอื่น)') : ''
-              return (
-                `<b>${n.name}</b> · ${n.cp} CP${base}` +
-                here.map((s) => `<br/>• ${s.name}: ${s.dataMissing ? 'ไม่มีข้อมูลดรอป' : fmt(s.income) + '/วัน'}${planPzk.has(s.pzk) ? ' ◀ ในแผน' : ''}`).join('')
+            tooltip={(id) =>
+              nodeTooltip(
+                game,
+                id,
+                (game.pzByParent.get(id) ?? [])
+                  .map((pzk) => spots.get(pzk))
+                  .filter((x) => !!x)
+                  .map((x) => ({ spot: planPzk.has(x.pzk) ? x : (cands.get(x.pzk)?.spot ?? x), inPlan: planPzk.has(x.pzk) })),
               )
-            }}
+            }
           />
           <div className="pointer-events-none absolute bottom-2 left-2 z-[500] rounded bg-black/70 px-2 py-1 text-[11px] text-neutral-300">
             🟠 จุดทำงาน · ⚪ ทางผ่าน · 🔵 เมือง · เลข = จำนวนคนงาน · กด node ดูจุดย่อย

@@ -91,3 +91,17 @@ body {
 .leaflet-container {
   font-family: inherit;
 }
+
+/* tooltip ของ node — พื้นเข้มให้อ่านชื่อ/ไอคอนไอเทมออก */
+.leaflet-tooltip:not(.city-label):not(.spot-label):not(.count-badge) {
+  background: rgba(17, 17, 17, 0.96);
+  border: 1px solid #404040;
+  color: #e5e5e5;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  max-width: 340px;
+  white-space: normal;
+  min-width: 200px;
+}
+.leaflet-tooltip-top:not(.city-label)::before {
+  border-top-color: #404040;
+}

@@ -108,3 +108,12 @@ export function minusItem(app: App, itemId: number) {
     }
   }
 }
+
+/** ล้าง: ถอดทุกจุดในแผนที่ผลิตไอเทมนี้ทันที */
+export function clearItem(app: App, itemId: number) {
+  const drop = new Set(
+    app.state.picks.filter((p) => app.spots.get(p.pzk)?.items.some((it) => it.id === itemId && !it.lucky)).map((p) => p.pzk),
+  )
+  app.setPicks(app.state.picks.filter((p) => !drop.has(p.pzk)))
+  if (app.lastAdd && drop.has(app.lastAdd.pzk)) app.setLastAdd(null)
+}
