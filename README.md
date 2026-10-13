@@ -7,7 +7,7 @@
 ```bash
 npm run dev            # http://localhost:3910
 npm run sync:market    # อัปเดตราคาตลาด ASIA จาก bdolytics → public/data/market.json
-npm run deploy         # build (out/) แล้วดันขึ้น branch gh-pages
+npm run deploy         # build (out/) แล้ว push ขึ้น branch gh-pages (scripts/deploy.mjs)
 ```
 
 อัปเดตราคา: `npm run sync:market` → commit → `npm run deploy`
