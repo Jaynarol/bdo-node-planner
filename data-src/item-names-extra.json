@@ -1,0 +1,98 @@
+{
+  "1024": {
+    "nameTh": "ห่อผ้าของชาวนาบางคน",
+    "nameEn": "Some Farmer's Sack"
+  },
+  "1025": {
+    "nameTh": "ห่อผ้าของคนขุดแร่บางคน",
+    "nameEn": "Some Miner's Sack"
+  },
+  "1026": {
+    "nameTh": "ห่อผ้าของนักวิชาการบางคน",
+    "nameEn": "Some Archaeologist's Sack"
+  },
+  "1027": {
+    "nameTh": "ห่อผ้าของนักตกปลาบางคน",
+    "nameEn": "Some Fisher's Sack"
+  },
+  "8012": {
+    "nameTh": "แผนผัง : ปืนใหญ่ของชีโล่",
+    "nameEn": "Blueprint: Chiro's Cannon"
+  },
+  "8013": {
+    "nameTh": "แผนผัง : ใบเรือของชีโล่",
+    "nameEn": "Blueprint: Chiro's Sail"
+  },
+  "8014": {
+    "nameTh": "แผนผัง : หัวเรือของชีโล่",
+    "nameEn": "Blueprint: Chiro's Figurehead"
+  },
+  "8015": {
+    "nameTh": "แผนผัง : หุ้มเกราะดำของชีโล่",
+    "nameEn": "Blueprint: Chiro's Black Plating"
+  },
+  "8022": {
+    "nameTh": "ผงแสงดาว",
+    "nameEn": "Starlight Powder"
+  },
+  "8027": {
+    "nameTh": "แผนผัง : ปืนใหญ่แข็งแกร่งแห่งบยอกเก",
+    "nameEn": "Blueprint: Byukgye's Enhanced Cannon"
+  },
+  "8028": {
+    "nameTh": "แผนผัง : ใบเรือแข็งแกร่งแห่งบยอกเก",
+    "nameEn": "Blueprint: Byukgye's Enhanced Sail"
+  },
+  "8029": {
+    "nameTh": "แผนผัง : หัวเรือแข็งแกร่งแห่งบยอกเก",
+    "nameEn": "Blueprint: Byukgye's Enhanced Figurehead"
+  },
+  "8030": {
+    "nameTh": "แผนผัง : หุ้มเกราะแข็งแกร่งแห่งบยอกเก",
+    "nameEn": "Blueprint: Byukgye's Enhanced Plating"
+  },
+  "8933": {
+    "nameTh": "หินออบซิเดียนโอบไออุ่น",
+    "nameEn": "Fiery Black Ore"
+  },
+  "9071": {
+    "nameTh": "ชิ้นส่วนน้ำแข็งโปร่งใส",
+    "nameEn": "Translucent Ice Shard"
+  },
+  "42418": {
+    "nameTh": "กำมะถันประกายสีฟ้า",
+    "nameEn": "Bluish Sulfur"
+  },
+  "44406": {
+    "nameTh": "ชิ้นส่วนดวงดาวแตกหัก",
+    "nameEn": "Shattered Star Fragment"
+  },
+  "65267": {
+    "nameTh": "เปลวไฟแห่งฮงอิกที่ลุกโชติ",
+    "nameEn": "Embers of Hongik"
+  },
+  "752023": {
+    "nameTh": "ก้อนเวทมนตร์บริสุทธิ์",
+    "nameEn": "Mass of Pure Magic"
+  },
+  "820035": {
+    "nameTh": "ผลึกแห่งความกลมกลืน",
+    "nameEn": "Crystal of Harmony"
+  },
+  "820036": {
+    "nameTh": "ผลึกแห่งผืนป่า",
+    "nameEn": "Forest Crystal"
+  },
+  "820037": {
+    "nameTh": "ผลึกแห่งความมืด",
+    "nameEn": "Crystal of Darkness"
+  },
+  "820038": {
+    "nameTh": "ผลึกแห่งความขมขื่น",
+    "nameEn": "Crystal of Bitterness"
+  },
+  "820039": {
+    "nameTh": "ผลึกแห่งการทำลายล้าง",
+    "nameEn": "Crystal of Decimation"
+  }
+}
