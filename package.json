@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit",
     "build:data": "node scripts/build-data.mjs",
     "sync:market": "node scripts/sync-market.mjs",
-    "deploy": "next build && node scripts/deploy.mjs"
+    "deploy": "npm run sync:market && next build && node scripts/deploy.mjs"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

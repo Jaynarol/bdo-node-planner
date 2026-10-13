@@ -7,10 +7,10 @@
 ```bash
 npm run dev            # http://localhost:3910
 npm run sync:market    # อัปเดตราคาตลาด ASIA จาก bdolytics → public/data/market.json
-npm run deploy         # build (out/) แล้ว push ขึ้น branch gh-pages (scripts/deploy.mjs)
+npm run deploy         # ดึงราคาล่าสุด → build (out/) → push ขึ้น branch gh-pages
 ```
 
-อัปเดตราคา: `npm run sync:market` → commit → `npm run deploy`
+`deploy` ดึงราคาให้ทุกครั้งก่อน build — ถ้าดึงไม่สำเร็จจะหยุด ไม่ deploy ราคาเก่า (commit ไฟล์ `public/data/market.json` ที่เปลี่ยนตามได้)
 
 ## ตั้งค่า GitHub Pages ครั้งแรก
 
