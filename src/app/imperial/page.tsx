@@ -123,7 +123,7 @@ export default function ImperialPage() {
         <section className="space-y-2">
           <h2 className="font-semibold text-amber-300">วัตถุดิบที่ปลูกได้ — ยึดอะไร</h2>
           <p className="text-xs text-neutral-500">
-            🌾 ตาม node = ใช้เท่าที่จุดในแผนเก็บได้ (เป็นคอขวดได้) · 🌱 ปลูก = หาเองไม่จำกัด · ⭐ ชั้นหนึ่ง = 1 ลูกนับหลายหน่วย หรือแลกลงธรรมดา 1:4
+            🌾 ตาม node = ใช้เท่าที่จุดในแผนเก็บได้ (เป็นคอขวดได้) · 🌱 ปลูก = หาเองไม่จำกัด · ⭐ ชั้นหนึ่ง = ใส่ตรง (1 ลูกนับหลายหน่วย) หรือแลกเป็นระดับสูง 1→2 / ธรรมดา 1→4 — ระบบเลือกแบบที่ใช้น้อยสุด
             {f.premiumPerDay > 0 && (
               <b className="ml-1 text-amber-200">
                 ชั้นหนึ่งรวม ~{qty(f.premiumPerDay)} ลูก/วัน ≈ {(f.premiumPerDay / f.plotYield).toFixed(1)} แปลง
@@ -169,7 +169,8 @@ export default function ImperialPage() {
                   {n.premium && (
                     <span className="block text-[11px] text-amber-200/80">
                       ⭐ ชั้นหนึ่ง{n.premium.direct > 0.5 && ` · ใส่ตรง ${qty(n.premium.direct)}`}
-                      {n.premium.exchanged > 0.5 && ` · แลกลง 1:4 ${qty(n.premium.exchanged)}`}
+                      {n.premium.toHigh > 0.5 && ` · แลกเป็นระดับสูง ${qty(n.premium.toHigh)} (= ${qty(n.premium.toHigh * 2)} ลูกระดับสูง)`}
+                      {n.premium.toNormal > 0.5 && ` · แลกเป็นธรรมดา ${qty(n.premium.toNormal)} (= ${qty(n.premium.toNormal * 4)} ลูก)`}
                     </span>
                   )}
                 </span>

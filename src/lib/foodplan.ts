@@ -25,7 +25,8 @@ export interface Need {
   item: Item
   source: Source
   perDay: number
-  premium?: { direct: number; exchanged: number }
+  /** ลูกชั้นหนึ่ง/วัน แยกตามวิธีใช้: ใส่ตรง · แลกเป็นระดับสูง (1 → 2) · แลกเป็นธรรมดา (1 → 4) */
+  premium?: { direct: number; toHigh: number; toNormal: number }
   alts?: string[]
   fromNode: number
 }
@@ -129,22 +130,30 @@ export function buildFoodPlan(game: Game, state: AppState, spots: Map<number, Sp
         const ps = premium.has(r.id) ? premiumSlot(p.dish, r.id) : null
         const pr = premium.has(r.id) && !ps ? premiumOf(r.id) : undefined
         if (pr) {
-          const n = needs.get(-pr.id) ?? { item: pr, source: 'farm' as Source, perDay: 0, fromNode: 0, premium: { direct: 0, exchanged: 0 } }
+          // อยู่ในสูตรย่อย (ไม่รู้จำนวนต่อครั้งของช่องนั้น) — คิดแบบแลกชั้นหนึ่งเป็นธรรมดา 1 → 4
+          const n = needs.get(-pr.id) ?? { item: pr, source: 'farm' as Source, perDay: 0, fromNode: 0, premium: { direct: 0, toHigh: 0, toNormal: 0 } }
           const amt = (r.perCrate * p.share) / 4
           n.perDay += amt
-          n.premium!.exchanged += amt
+          n.premium!.toNormal += amt
           needs.set(-pr.id, n)
           continue
         }
         if (ps) {
-          const direct = Math.ceil(ps.slot.qty / ps.best.value)
-          const viaExchange = ps.slot.qty / 4
-          const perCraft = Math.min(direct, viaExchange)
+          // ต่อ 1 ครั้งที่ทำ ช่องนี้ต้องการ qty หน่วย — เลือกวิธีที่ใช้ลูกชั้นหนึ่งน้อยสุด (ผู้ใช้ยืนยันในเกม 2026-10-15):
+          //   ใส่ตรง: ชั้นหนึ่งนับ value หน่วย/ลูก (หัวไชเท้าชั้นหนึ่ง 1 ลูก = ช่อง 5 เต็ม)
+          //   แลกเป็นระดับสูง: ชั้นหนึ่ง 1 → ระดับสูง 2 (กระเทียมช่อง 2 ใช้ระดับสูง 1 ลูก = ชั้นหนึ่ง 0.5)
+          //   แลกเป็นธรรมดา: ชั้นหนึ่ง 1 → ธรรมดา 4
+          const high = ps.slot.options.filter((o) => o.value > 1 && o.value < ps.best.value).sort((a, b) => b.value - a.value)[0]
+          const ways = [
+            { k: 'direct' as const, n: Math.ceil(ps.slot.qty / ps.best.value) },
+            ...(high ? [{ k: 'toHigh' as const, n: Math.ceil(ps.slot.qty / high.value) / 2 }] : []),
+            { k: 'toNormal' as const, n: ps.slot.qty / 4 },
+          ]
+          const w = ways.reduce((a, b) => (b.n < a.n ? b : a))
           const crafts = p.share / p.dish.cratesPerCook
-          const n = needs.get(-ps.best.id) ?? { item: item(ps.best.id), source: 'farm' as Source, perDay: 0, fromNode: 0, premium: { direct: 0, exchanged: 0 } }
-          n.perDay += crafts * perCraft
-          if (viaExchange < direct) n.premium!.exchanged += crafts * perCraft
-          else n.premium!.direct += crafts * perCraft
+          const n = needs.get(-ps.best.id) ?? { item: item(ps.best.id), source: 'farm' as Source, perDay: 0, fromNode: 0, premium: { direct: 0, toHigh: 0, toNormal: 0 } }
+          n.perDay += crafts * w.n
+          n.premium![w.k] += crafts * w.n
           needs.set(-ps.best.id, n)
           continue
         }

@@ -39,7 +39,12 @@ const nodes = nodesRaw
   .filter((n) => n.main || pzIds.has(n.id))
   .map((n) => ({ id: n.id, name: n.nameTh, cp: n.cp, x: n.x, y: n.y, kind: n.kind, main: n.main, conn: n.connections }))
 
-const cleanRecipes = recipes.map(({ xp, ...r }) => r)
+// แก้สูตรที่ข้อมูลต้นทางผิด (ยืนยันจากในเกมแล้วเท่านั้น) — ดู data-src/recipe-fixes.json
+const fixes = read('recipe-fixes.json')
+const cleanRecipes = recipes.map(({ xp, ...r }) => {
+  const f = fixes[r.productItemId]
+  return f ? { ...r, minProc: f.minProc ?? r.minProc, maxProc: f.maxProc ?? r.maxProc } : r
+})
 
 const game = { builtAt: new Date().toISOString(), nodes, workerTowns, towns, drops, recipes: cleanRecipes, groups, imperial, meta, extra }
 fs.mkdirSync('public/data', { recursive: true })
